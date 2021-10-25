@@ -92,6 +92,7 @@ export default {
   data() {
     return {
       picSaveLeval: "origin",
+      curIndex: 0,
       canvas: null,
       ctx: null,
       img: null,
@@ -210,52 +211,63 @@ export default {
         const self = this;
         input.onchange = async function(e) {
           const fileList = e.path[0].files;
-          console.log(fileList);
-          Object.keys(fileList).forEach(async key => {
-            const dataUrl = await self.cutFile(fileList[key], key);
-            const a = document.createElement("a");
-            a.href = dataUrl;
-            a.download = `${fileList[key].name}`;
-            a.click();
-          });
+          self.cutFile(fileList);
+          // Object.keys(fileList).forEach(async key => {
+          //   const dataUrl = await self.cutFile(fileList[key], key);
+          //   const a = document.createElement("a");
+          //   a.href = dataUrl;
+          //   a.download = `${fileList[key].name}`;
+          //   a.click();
+          // });
         };
       } catch (error) {
         throw new Error(error);
       }
     },
-    cutFile(file) {
+    cutFile(list) {
       const self = this;
-      return new Promise(resolve => {
-        const fileReader = new FileReader();
-        fileReader.readAsDataURL(file);
-        const canvas = document.createElement("canvas");
-        canvas.width = parseInt(self.cutCfg.w);
-        canvas.height = parseInt(self.cutCfg.h);
-        const ctx = canvas.getContext("2d");
-        fileReader.onload = function(res) {
-          const data = res.currentTarget.result;
-          const img = document.createElement("img");
-          img.src = data;
-          img.onload = function() {
-            ctx.drawImage(
-              img,
-              parseInt(self.cutCfg.x),
-              parseInt(self.cutCfg.y),
-              parseInt(self.cutCfg.w),
-              parseInt(self.cutCfg.h),
-              0,
-              0,
-              parseInt(self.cutCfg.w),
-              parseInt(self.cutCfg.h)
-            );
-            const dataURL =
-              self.picSaveLeval === "origin"
-                ? canvas.toDataURL()
-                : canvas.toDataURL("image/jpeg", self.picSaveLeval);
-            resolve(dataURL);
-          };
+      // return new Promise(resolve => {
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(list[self.curIndex.toString()]);
+      const canvas = document.createElement("canvas");
+      canvas.width = parseInt(self.cutCfg.w);
+      canvas.height = parseInt(self.cutCfg.h);
+      const ctx = canvas.getContext("2d");
+      fileReader.onload = function(res) {
+        const data = res.currentTarget.result;
+        const img = document.createElement("img");
+        img.src = data;
+        img.onload = function() {
+          ctx.drawImage(
+            img,
+            parseInt(self.cutCfg.x),
+            parseInt(self.cutCfg.y),
+            parseInt(self.cutCfg.w),
+            parseInt(self.cutCfg.h),
+            0,
+            0,
+            parseInt(self.cutCfg.w),
+            parseInt(self.cutCfg.h)
+          );
+          const dataURL =
+            self.picSaveLeval === "origin"
+              ? canvas.toDataURL()
+              : canvas.toDataURL("image/jpeg", self.picSaveLeval);
+          const a = document.createElement("a");
+          a.href = dataURL;
+          a.download = `${list[self.curIndex.toString()].name}`;
+          a.click();
+
+          if (self.curIndex < list.length - 1) {
+            self.curIndex++;
+            setTimeout(() => {
+              self.cutFile(list);
+            }, 0);
+          }
+          // resolve(dataURL);
         };
-      });
+      };
+      // });
     }
   }
 };
