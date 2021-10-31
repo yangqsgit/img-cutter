@@ -70,7 +70,7 @@
               max="1"
               step="0.1"
             />
-            <div>非原画时，图片将丢失原有透明像素，替换为黑底</div>
+            <div>非原画时，为保证透明度不丢失图片将保存为webp格式</div>
           </div>
 
           <p>裁剪区域预览</p>
@@ -212,13 +212,6 @@ export default {
         input.onchange = async function(e) {
           const fileList = e.path[0].files;
           self.cutFile(fileList);
-          // Object.keys(fileList).forEach(async key => {
-          //   const dataUrl = await self.cutFile(fileList[key], key);
-          //   const a = document.createElement("a");
-          //   a.href = dataUrl;
-          //   a.download = `${fileList[key].name}`;
-          //   a.click();
-          // });
         };
       } catch (error) {
         throw new Error(error);
@@ -226,7 +219,6 @@ export default {
     },
     cutFile(list) {
       const self = this;
-      // return new Promise(resolve => {
       const fileReader = new FileReader();
       fileReader.readAsDataURL(list[self.curIndex.toString()]);
       const canvas = document.createElement("canvas");
@@ -252,22 +244,25 @@ export default {
           const dataURL =
             self.picSaveLeval === "origin"
               ? canvas.toDataURL()
-              : canvas.toDataURL("image/jpeg", self.picSaveLeval);
+              : canvas.toDataURL("image/webp", self.picSaveLeval);
           const a = document.createElement("a");
           a.href = dataURL;
-          a.download = `${list[self.curIndex.toString()].name}`;
+          a.download =
+            self.picSaveLeval === "origin"
+              ? `${list[self.curIndex.toString()].name}`
+              : `${list[self.curIndex.toString()].name}.webp`;
           a.click();
 
           if (self.curIndex < list.length - 1) {
             self.curIndex++;
             setTimeout(() => {
               self.cutFile(list);
-            }, 0);
+            }, 50);
+          } else {
+            self.curIndex = 0;
           }
-          // resolve(dataURL);
         };
       };
-      // });
     }
   }
 };
